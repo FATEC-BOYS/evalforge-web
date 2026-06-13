@@ -7,7 +7,7 @@ import { login, ApiError } from "@/lib/api"
 import { saveToken } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Zap } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -35,13 +35,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[70vh] px-4">
+    <div className="flex items-center justify-center min-h-[80vh] px-4">
       <div className="w-full max-w-sm">
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+        {/* Brand */}
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 ring-1 ring-indigo-500/30">
+            <Zap className="h-5 w-5 text-indigo-400" />
+          </div>
+          <div className="text-center">
+            <h1 className="text-lg font-bold text-slate-50">
+              eval<span className="text-indigo-400">forge</span>
+            </h1>
+            <p className="text-sm text-slate-500 mt-0.5">Sign in to your account</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/[0.07] bg-slate-900/60 p-6 shadow-xl shadow-black/20">
+          <div className="flex flex-col gap-4">
             <Input
               label="Email"
               type="email"
@@ -60,26 +70,28 @@ export default function LoginPage() {
             />
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-md px-3 py-2">{error}</p>
+              <div className="rounded-xl border border-red-500/20 bg-red-500/8 px-3 py-2.5">
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
             )}
 
             <Button
               onClick={handleSubmit}
               isLoading={isLoading}
               disabled={!email || !password}
-              className="w-full"
+              className="w-full mt-1"
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
+          </div>
+        </div>
 
-            <p className="text-center text-sm text-gray-500">
-              Don&apos;t have an account?{" "}
-              <Link href="/auth/register" className="text-indigo-600 hover:underline">
-                Register
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+        <p className="mt-5 text-center text-sm text-slate-500">
+          Don&apos;t have an account?{" "}
+          <Link href="/auth/register" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   )
