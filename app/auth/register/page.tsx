@@ -62,8 +62,9 @@ export default function RegisterPage() {
             <Zap className="h-5 w-5 text-indigo-400" />
           </div>
           <div className="text-center">
-            <h1 className="text-lg font-bold text-slate-50">
-              eval<span className="text-indigo-400">forge</span>
+            <h1 className="text-lg tracking-tight text-slate-100">
+              <span className="font-medium">eval</span>
+              <span className="font-display italic text-indigo-300">forge</span>
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">Create your account</p>
           </div>
