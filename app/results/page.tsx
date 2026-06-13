@@ -20,7 +20,13 @@ export default function ResultsPage() {
       return
     }
     try {
-      setResult(JSON.parse(raw))
+      const parsed = JSON.parse(raw)
+      if (!parsed?.request?.model || !parsed?.result?.scores) {
+        sessionStorage.removeItem("evalforge_result")
+        router.push("/evaluate")
+        return
+      }
+      setResult(parsed)
     } catch {
       router.push("/evaluate")
     }
