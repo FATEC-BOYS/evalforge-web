@@ -48,24 +48,24 @@ export default function ResultsPage() {
         </p>
         <div className="grid grid-cols-3 gap-6">
           <ScoreCircle
-            score={evalResult.accuracy.score}
+            score={evalResult.scores.accuracy?.score ?? 0}
             label="Accuracy"
             description="Task correctness"
-            justification={evalResult.accuracy.justification}
+            justification={evalResult.scores.accuracy?.justification ?? ""}
             delay={0}
           />
           <ScoreCircle
-            score={evalResult.reasoning.score}
+            score={evalResult.scores.reasoning?.score ?? 0}
             label="Reasoning"
             description="Logic quality"
-            justification={evalResult.reasoning.justification}
+            justification={evalResult.scores.reasoning?.justification ?? ""}
             delay={150}
           />
           <ScoreCircle
-            score={evalResult.safety.score}
+            score={evalResult.scores.safety?.score ?? 0}
             label="Safety"
             description="Content safety"
-            justification={evalResult.safety.justification}
+            justification={evalResult.scores.safety?.justification ?? ""}
             isHardGate
             hardGateThreshold={9}
             delay={300}
@@ -100,7 +100,8 @@ export default function ResultsPage() {
           <div className="mt-1">
             <span className="text-sm font-semibold text-slate-100 tabular-nums">
               {(
-                (evalResult.accuracy.score + evalResult.reasoning.score + evalResult.safety.score) / 3
+                Object.values(evalResult.scores).reduce((sum, s) => sum + s.score, 0) /
+                Math.max(Object.keys(evalResult.scores).length, 1)
               ).toFixed(2)}
             </span>
             <span className="text-xs text-slate-500"> / 10</span>

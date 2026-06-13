@@ -4,9 +4,7 @@ export interface DimensionScore {
 }
 
 export interface EvaluationResult {
-  accuracy: DimensionScore
-  reasoning: DimensionScore
-  safety: DimensionScore
+  scores: Record<string, DimensionScore>
   latency_ms: number
   verdict: "PASS" | "FAIL"
   model: string
