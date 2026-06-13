@@ -7,7 +7,7 @@ import { evaluate, ApiError, EvalResponse } from "@/lib/api"
 import { getToken, removeToken } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Cpu, ArrowRight, Lock, Zap } from "lucide-react"
+import { Cpu, ArrowRight, Lock, Zap, Check } from "lucide-react"
 
 const MODELS = [
   {
@@ -35,7 +35,7 @@ export default function EvaluatePage() {
   const [token, setToken] = useState<string | null>(null)
   const [task, setTask] = useState("")
   const [input, setInput] = useState("")
-  const [model, setModel] = useState(MODELS[0].options[0].value)
+  const [selectedModels, setSelectedModels] = useState<string[]>([MODELS[0].options[0].value])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,13 +43,24 @@ export default function EvaluatePage() {
     setToken(getToken())
   }, [])
 
+  function toggleModel(value: string) {
+    setSelectedModels((prev) =>
+      prev.includes(value)
+        ? prev.length > 1 ? prev.filter((m) => m !== value) : prev
+        : [...prev, value]
+    )
+  }
+
   async function handleSubmit() {
     if (!token) return
     setIsLoading(true)
     setError(null)
     try {
-      const result: EvalResponse = await evaluate({ task, input, model }, token)
-      sessionStorage.setItem("evalforge_result", JSON.stringify(result))
+      const results: EvalResponse[] = await Promise.all(
+        selectedModels.map((model) => evaluate({ task, input, model }, token))
+      )
+      sessionStorage.setItem("evalforge_results", JSON.stringify(results))
+      sessionStorage.removeItem("evalforge_result")
       router.push("/results")
     } catch (err) {
       if (err instanceof ApiError) {
@@ -83,6 +94,8 @@ export default function EvaluatePage() {
       </div>
     )
   }
+
+  const isComparing = selectedModels.length > 1
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
@@ -140,19 +153,26 @@ export default function EvaluatePage() {
 
         {/* Model selector */}
         <div className="flex flex-col gap-3">
-          <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Model
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Model
+            </label>
+            {isComparing && (
+              <span className="text-[11px] text-indigo-400 font-medium">
+                {selectedModels.length} models selected — results will be compared
+              </span>
+            )}
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {MODELS.map((group) => (
               <div key={group.group} className="flex flex-col gap-1.5">
                 <p className="text-[11px] font-medium text-slate-500 pl-1">{group.group}</p>
                 {group.options.map((opt) => {
-                  const isSelected = model === opt.value
+                  const isSelected = selectedModels.includes(opt.value)
                   return (
                     <button
                       key={opt.value}
-                      onClick={() => setModel(opt.value)}
+                      onClick={() => toggleModel(opt.value)}
                       disabled={isLoading}
                       className={cn(
                         "flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-all",
@@ -170,10 +190,12 @@ export default function EvaluatePage() {
                       </div>
                       <div
                         className={cn(
-                          "h-4 w-4 rounded-full border-2 transition-all",
+                          "h-4 w-4 rounded border-2 transition-all flex items-center justify-center",
                           isSelected ? "border-indigo-400 bg-indigo-400" : "border-slate-600 bg-transparent"
                         )}
-                      />
+                      >
+                        {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                      </div>
                     </button>
                   )
                 })}
@@ -198,11 +220,11 @@ export default function EvaluatePage() {
           {isLoading ? (
             <>
               <Cpu className="h-4 w-4 animate-pulse" />
-              Running pipeline...
+              {isComparing ? `Running ${selectedModels.length} pipelines...` : "Running pipeline..."}
             </>
           ) : (
             <>
-              Run evaluation
+              {isComparing ? `Compare ${selectedModels.length} models` : "Run evaluation"}
               <ArrowRight className="h-4 w-4" />
             </>
           )}

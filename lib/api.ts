@@ -16,6 +16,24 @@ export interface EvalRequest {
   model: string
 }
 
+export interface EvalHistoryItem {
+  public_id: string
+  task: string
+  input: string
+  model: string
+  verdict: "PASS" | "FAIL"
+  scores: Record<string, DimensionScore>
+  latency_ms: number
+  created_at: string
+}
+
+export interface UserProfile {
+  public_id: string
+  email: string
+  tier: string
+  is_admin: boolean
+}
+
 export interface EvalResponse {
   request: EvalRequest
   result: EvaluationResult
@@ -88,4 +106,12 @@ export async function evaluate(request: EvalRequest, token: string): Promise<Eva
     body: JSON.stringify(request),
     token,
   })
+}
+
+export async function getMe(token: string): Promise<UserProfile> {
+  return apiFetch<UserProfile>("/me", { token })
+}
+
+export async function listEvaluations(token: string, limit = 50): Promise<EvalHistoryItem[]> {
+  return apiFetch<EvalHistoryItem[]>(`/evaluations?limit=${limit}`, { token })
 }
