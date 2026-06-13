@@ -1,23 +1,30 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { DM_Sans, Playfair_Display } from "next/font/google"
 import "./globals.css"
 import { Navbar } from "@/components/navbar"
 
-const inter = Inter({ subsets: ["latin"] })
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  style: ["normal", "italic"],
+})
 
 export const metadata: Metadata = {
   title: "EvalForge — LLM Evaluation Pipeline",
   description: "Multi-agent pipeline for systematic LLM evaluation — accuracy, reasoning, and safety.",
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.className} min-h-full flex flex-col bg-[#080812]`}>
+      <body className={`${dmSans.variable} ${playfair.variable} font-sans min-h-full flex flex-col bg-[#09090f]`}>
         <Navbar />
         <main className="flex-1">{children}</main>
       </body>
