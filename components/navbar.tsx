@@ -4,28 +4,57 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { getToken, removeToken } from "@/lib/auth"
-import { Button } from "@/components/ui/button"
+import { getUsage, UsageInfo } from "@/lib/api"
 import { useRouter } from "next/navigation"
-import { Zap, History, LogOut, FlaskConical } from "lucide-react"
+import { LogOut, FlaskConical, Zap, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
   { href: "/evaluate", label: "Evaluate" },
-  { href: "/account", label: "History" },
+  { href: "/history", label: "History" },
 ]
+
+function RateBadge({ usage }: { usage: UsageInfo }) {
+  if (usage.tier === "pro") return null
+  const pct = usage.used / usage.limit
+  if (pct < 0.7) return null // only show when ≥70% used
+
+  const isOut = usage.remaining === 0
+  const isWarn = pct >= 0.9
+
+  return (
+    <div className={cn(
+      "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border",
+      isOut
+        ? "text-red-400 bg-red-500/[0.08] border-red-500/20"
+        : isWarn
+          ? "text-yellow-400 bg-yellow-500/[0.08] border-yellow-500/20"
+          : "text-slate-400 bg-white/[0.04] border-white/[0.06]"
+    )}>
+      <Zap className="h-3 w-3" />
+      {isOut ? "Limit reached" : `${usage.remaining} left`}
+    </div>
+  )
+}
 
 export function Navbar() {
   const [token, setToken] = useState<string | null>(null)
+  const [usage, setUsage] = useState<UsageInfo | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
-    setToken(getToken())
-  }, [])
+    const t = getToken()
+    setToken(t)
+    if (t) {
+      getUsage(t).then(setUsage).catch(() => null)
+    }
+  }, [pathname]) // re-fetch after each navigation (catches post-eval usage update)
 
   function handleLogout() {
     removeToken()
     setToken(null)
+    setUsage(null)
     router.push("/")
   }
 
@@ -58,16 +87,31 @@ export function Navbar() {
             </Link>
           ))}
 
+          {/* Rate limit badge */}
+          {usage && <RateBadge usage={usage} />}
+
           <div className="mx-2 h-4 w-px bg-white/[0.08]" />
 
           {token ? (
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Logout
-            </button>
+            <div className="flex items-center gap-1">
+              <Link href="/account">
+                <button className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors",
+                  pathname === "/account"
+                    ? "text-slate-100 bg-white/[0.07]"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                )}>
+                  <User className="h-3.5 w-3.5" />
+                  Account
+                </button>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:text-slate-300 hover:bg-white/[0.04] transition-colors"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            </div>
           ) : (
             <>
               <Link href="/auth/login">
