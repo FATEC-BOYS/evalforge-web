@@ -43,13 +43,21 @@ export function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
 
+  // Fetch usage once on mount, then only after /evaluate (post-eval)
   useEffect(() => {
     const t = getToken()
     setToken(t)
-    if (t) {
-      getUsage(t).then(setUsage).catch(() => null)
+    if (!t) return
+    getUsage(t).then(setUsage).catch(() => null)
+  }, []) // mount only
+
+  // Refresh usage when returning from /evaluate (where evals are consumed)
+  useEffect(() => {
+    if (pathname === "/results") {
+      const t = getToken()
+      if (t) getUsage(t).then(setUsage).catch(() => null)
     }
-  }, [pathname]) // re-fetch after each navigation (catches post-eval usage update)
+  }, [pathname])
 
   function handleLogout() {
     removeToken()
