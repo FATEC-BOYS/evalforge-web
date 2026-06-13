@@ -21,10 +21,19 @@ export interface EvalHistoryItem {
   task: string
   input: string
   model: string
+  response: string
   verdict: "PASS" | "FAIL"
   scores: Record<string, DimensionScore>
   latency_ms: number
   created_at: string
+}
+
+export interface UsageInfo {
+  used: number
+  limit: number
+  remaining: number
+  resets_in: number
+  tier: string
 }
 
 export interface UserProfile {
@@ -114,4 +123,8 @@ export async function getMe(token: string): Promise<UserProfile> {
 
 export async function listEvaluations(token: string, limit = 50): Promise<EvalHistoryItem[]> {
   return apiFetch<EvalHistoryItem[]>(`/evaluations?limit=${limit}`, { token })
+}
+
+export async function getUsage(token: string): Promise<UsageInfo> {
+  return apiFetch<UsageInfo>("/me/usage", { token })
 }

@@ -8,7 +8,7 @@ import { getToken, removeToken } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 import {
   Cpu, ArrowRight, Lock, Zap, Check, Info,
-  Sparkles, BrainCircuit, ShieldCheck, BarChart3,
+  Sparkles, BrainCircuit, ShieldCheck,
   GitCompare, ChevronRight,
 } from "lucide-react"
 
@@ -98,7 +98,19 @@ export default function EvaluatePage() {
   const [loadingStep, setLoadingStep] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => { setToken(getToken()) }, [])
+  useEffect(() => {
+    setToken(getToken())
+    // Support "Run again" prefill from history
+    const prefill = sessionStorage.getItem("evalforge_prefill")
+    if (prefill) {
+      try {
+        const { task: t, input: i } = JSON.parse(prefill)
+        if (t) setTask(t)
+        if (i) setInput(i)
+      } catch { /* ignore */ }
+      sessionStorage.removeItem("evalforge_prefill")
+    }
+  }, [])
 
   // Animate loading steps
   useEffect(() => {
