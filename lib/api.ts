@@ -19,6 +19,7 @@ export interface EvalRequest {
 export interface EvalResponse {
   request: EvalRequest
   result: EvaluationResult
+  output: string | null
 }
 
 export interface TokenResponse {
