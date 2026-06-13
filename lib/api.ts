@@ -4,9 +4,7 @@ export interface DimensionScore {
 }
 
 export interface EvaluationResult {
-  accuracy: DimensionScore
-  reasoning: DimensionScore
-  safety: DimensionScore
+  scores: Record<string, DimensionScore>
   latency_ms: number
   verdict: "PASS" | "FAIL"
   model: string
@@ -21,6 +19,7 @@ export interface EvalRequest {
 export interface EvalResponse {
   request: EvalRequest
   result: EvaluationResult
+  output: string | null
 }
 
 export interface TokenResponse {

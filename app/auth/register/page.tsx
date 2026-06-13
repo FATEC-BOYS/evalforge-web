@@ -15,19 +15,39 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
 
-  async function handleSubmit() {
-    setIsLoading(true)
+  function validate() {
+    const errors: { email?: string; password?: string } = {}
+    if (!email.trim()) errors.email = "Email is required"
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email address"
+    if (!password) errors.password = "Password is required"
+    else if (password.length < 8) errors.password = "Password must be at least 8 characters"
+    return errors
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
     setError(null)
+    const errors = validate()
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
+    setFieldErrors({})
+    setIsLoading(true)
     try {
       const { access_token } = await register(email, password)
       saveToken(access_token)
       router.push("/evaluate")
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message)
+        if (err.status === 409) setError("An account with this email already exists.")
+        else if (err.status === 422) setError("Invalid email or password format.")
+        else if (err.status >= 500) setError("Server error. Please try again in a moment.")
+        else setError(err.message)
       } else {
-        setError("An unexpected error occurred. Please try again.")
+        setError("Unable to connect. Check your connection and try again.")
       }
     } finally {
       setIsLoading(false)
@@ -37,7 +57,6 @@ export default function RegisterPage() {
   return (
     <div className="flex items-center justify-center min-h-[80vh] px-4">
       <div className="w-full max-w-sm">
-        {/* Brand */}
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 ring-1 ring-indigo-500/30">
             <Zap className="h-5 w-5 text-indigo-400" />
@@ -51,39 +70,47 @@ export default function RegisterPage() {
         </div>
 
         <div className="rounded-2xl border border-white/[0.07] bg-slate-900/60 p-6 shadow-xl shadow-black/20">
-          <div className="flex flex-col gap-4">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-            />
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <Input
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })) }}
+                disabled={isLoading}
+                autoComplete="email"
+              />
+              {fieldErrors.email && (
+                <p className="text-sm text-red-400 font-medium pl-0.5">{fieldErrors.email}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <Input
+                label="Password"
+                type="password"
+                placeholder="At least 8 characters"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setFieldErrors((p) => ({ ...p, password: undefined })) }}
+                disabled={isLoading}
+                autoComplete="new-password"
+              />
+              {fieldErrors.password && (
+                <p className="text-sm text-red-400 font-medium pl-0.5">{fieldErrors.password}</p>
+              )}
+            </div>
 
             {error && (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/8 px-3 py-2.5">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5">
+                <p className="text-sm text-red-400 font-medium">{error}</p>
               </div>
             )}
 
-            <Button
-              onClick={handleSubmit}
-              isLoading={isLoading}
-              disabled={!email || !password}
-              className="w-full mt-1"
-            >
+            <Button type="submit" isLoading={isLoading} className="w-full mt-1">
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
-          </div>
+          </form>
         </div>
 
         <p className="mt-5 text-center text-sm text-slate-500">
