@@ -39,6 +39,9 @@ export function Navbar() {
               <Link href="/evaluate">
                 <Button variant="ghost" size="sm">Evaluate</Button>
               </Link>
+              <Link href="/account">
+                <Button variant="ghost" size="sm">History</Button>
+              </Link>
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 Logout
               </Button>
